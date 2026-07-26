@@ -1,6 +1,6 @@
 import type { EditorSession, ApplyResult } from '@/types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'http://gerfkt1.synclastics.com:25570/api');
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org/api');
 
 export class SessionConflictError extends Error {
   constructor() {

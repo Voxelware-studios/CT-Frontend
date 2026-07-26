@@ -1,6 +1,6 @@
 import type { EditorSession, ApplyResult } from '@/types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org:8080');
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org');
 
 export async function getSession(sessionId: string): Promise<EditorSession> {
   const res = await fetch(`${API_BASE}/editor/${encodeURIComponent(sessionId)}`);

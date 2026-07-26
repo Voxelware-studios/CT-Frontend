@@ -1,0 +1,22 @@
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+
+export function Expired() {
+  return (
+    <div className="flex items-center justify-center min-h-screen p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <CardTitle className="text-2xl">Session Expired</CardTitle>
+          <CardDescription>
+            This editor session is no longer available
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="text-center text-sm text-muted-foreground space-y-2">
+          <p>Sessions expire after 15 minutes or when explicitly closed.</p>
+          <p>
+            Use <code className="bg-muted px-1.5 py-0.5 rounded text-xs">/ct editor</code> in-game to start a new session.
+          </p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

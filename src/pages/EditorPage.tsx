@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { APP_VERSION } from '@/lib/version';
-import { getSession, checkSessionStatus, applyChanges, cancelSession } from '@/lib/api';
+import { getSession, checkSessionStatus, applyChanges, cancelSession, SessionConflictError } from '@/lib/api';
 import { getSettingValue, groupByCategory, getModuleDisplayName } from '@/lib/schema-utils';
 import type { SettingDefinition } from '@/types';
 import { EditorSidebar } from '@/components/EditorSidebar';
@@ -39,9 +39,15 @@ export function EditorPage() {
 
   useEffect(() => {
     if (error) {
-      navigate('/expired', { replace: true });
+      if (error instanceof SessionConflictError) {
+        navigate('/expired', { replace: true, state: { reason: 'conflict' } });
+      } else {
+        navigate('/expired', { replace: true });
+      }
     }
   }, [error, navigate]);
+
+
 
   const statusQuery = useQuery({
     queryKey: ['status', sessionId],

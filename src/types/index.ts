@@ -19,6 +19,7 @@ export interface SchemaModule {
 export interface EditorSession {
   session_id: string;
   server_name: string;
+  server_id: string;
   plugin_version: string;
   expires_at: number;
   schema: Record<string, SettingDefinition[]>;
@@ -34,4 +35,53 @@ export interface ApplyResult {
     error?: string;
   }>;
   status: string;
+}
+
+export type HealthState = 'HEALTHY' | 'WARNING' | 'CRITICAL' | 'UNKNOWN' | 'PENDING';
+
+export interface HealthComponent {
+  name: string;
+  state: HealthState;
+  message: string;
+  details: Record<string, unknown>;
+}
+
+export interface HealthReport {
+  overall_state: HealthState;
+  timestamp: number;
+  server_uptime: number;
+  monitor_uptime: number;
+  components: HealthComponent[];
+  server_info: Record<string, unknown>;
+  incidents: Incident[];
+}
+
+export interface Incident {
+  id: string;
+  type: string;
+  subsystem: string;
+  title: string;
+  description: string;
+  severity: 'INFO' | 'WARNING' | 'CRITICAL';
+  status: 'DETECTED' | 'ACTIVE' | 'RECOVERED';
+  started_at: number;
+  resolved_at: number;
+  timeline: IncidentEvent[];
+  symptoms: Record<string, string>;
+  current_values: Record<string, unknown>;
+}
+
+export interface IncidentEvent {
+  timestamp: number;
+  type: string;
+  message: string;
+  severity?: string;
+}
+
+export interface ConnectedServer {
+  serverId: string;
+  serverName: string;
+  pluginVersion: string;
+  connectedAt: number;
+  hasHealth: boolean;
 }

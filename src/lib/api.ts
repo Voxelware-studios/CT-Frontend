@@ -1,4 +1,4 @@
-import type { EditorSession, ApplyResult } from '@/types';
+import type { EditorSession, ApplyResult, HealthReport, ConnectedServer } from '@/types';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org/api');
 
@@ -62,4 +62,29 @@ export async function cancelSession(sessionId: string): Promise<void> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ session_id: sessionId, claim_token: token }),
   });
+}
+
+export async function getConnectedServers(): Promise<{ servers: ConnectedServer[] }> {
+  const res = await fetch(`${API_BASE.replace('/api', '')}/api/health/servers`);
+  if (!res.ok) throw new Error(`Failed to fetch servers: ${res.statusText}`);
+  return res.json();
+}
+
+export async function getServerHealth(serverId: string): Promise<HealthReport | null> {
+  const res = await fetch(`${API_BASE.replace('/api', '')}/api/health/${encodeURIComponent(serverId)}`);
+  if (!res.ok) return null;
+  return res.json();
+}
+
+export async function getSessionStatus(sessionId: string): Promise<{
+  valid: boolean;
+  server_id?: string;
+  server_name?: string;
+  server_connected?: boolean;
+  server_status?: string;
+  expires_at?: number;
+}> {
+  const res = await fetch(`${API_BASE.replace('/api', '')}/api/session/${encodeURIComponent(sessionId)}/status`);
+  if (!res.ok) return { valid: false };
+  return res.json();
 }

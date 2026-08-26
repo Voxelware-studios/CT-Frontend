@@ -1,6 +1,6 @@
 import type { EditorSession, ApplyResult, HealthReport, ConnectedServer } from '@/types';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org/api');
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct-backend-b8cy.onrender.com/api');
 
 export class SessionConflictError extends Error {
   constructor() {

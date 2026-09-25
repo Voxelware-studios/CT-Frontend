@@ -11,7 +11,7 @@ export function StatsFooter() {
           </div>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <a
-              href="https://github.com/ApexMods/CT.CoreTuff"
+              href="https://github.com/Voxelware-studios/CoreTuff-Issue-Tracker"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
@@ -19,7 +19,7 @@ export function StatsFooter() {
               GitHub
             </a>
             <a
-              href="https://docs.coretuff.dev"
+              href="https://www.voxelware.org/projects/coretuff"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
@@ -27,7 +27,7 @@ export function StatsFooter() {
               Documentation
             </a>
             <a
-              href="https://discord.gg/coretuff"
+              href="https://discord.com/invite/dnV3fazVRF"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

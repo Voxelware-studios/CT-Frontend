@@ -26,7 +26,7 @@ export function Landing() {
             </div>
             <div className="flex items-center gap-3">
               <a
-                href="https://docs.coretuff.dev"
+                href="https://www.voxelware.org/projects/coretuff"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-sm text-muted-foreground hover:text-foreground transition-colors"

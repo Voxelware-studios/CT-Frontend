@@ -85,3 +85,66 @@ export interface ConnectedServer {
   connectedAt: number;
   hasHealth: boolean;
 }
+
+export interface Punishment {
+  id: string;
+  player: { uuid: string | null; name: string };
+  type: 'BAN' | 'TEMPBAN' | 'IPBAN';
+  status: 'ACTIVE' | 'PARDONED' | 'EXPIRED';
+  reason: string | null;
+  moderator: string;
+  issuedAt: number;
+  expiresAt: number;
+  duration?: string;
+  ip?: string;
+  pardonedBy?: string;
+  pardonReason?: string;
+  removedAt?: number;
+  expiredAt?: number;
+}
+
+export interface ModerationSummary {
+  totalPunishments: number;
+  activePunishments: number;
+  bans: number;
+  tempBans: number;
+  ipBans: number;
+  pardoned: number;
+  expired: number;
+  thisWeek: number;
+  thisMonth: number;
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface ModeratorStat {
+  moderator: string;
+  count: number;
+}
+
+export interface PlayerData {
+  uuid: string;
+  name: string;
+  online: boolean;
+  world: string;
+  gamemode: string;
+  ping: number;
+  firstSeen: number;
+  lastSeen: number;
+  playtime: number;
+  moderation?: {
+    activePunishments: number;
+    totalPunishments: number;
+  };
+}
+
+export interface PlayerListResponse {
+  online_count: number;
+  players: PlayerData[];
+}

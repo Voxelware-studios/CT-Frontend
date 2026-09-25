@@ -1,5 +1,7 @@
 import type { HealthComponent, HealthState } from '@/types';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { getServerRecord } from '@/lib/stats-api';
 
 interface PerformanceAlert {
   status: HealthState;
@@ -112,6 +114,15 @@ export function ServerMetrics({ component }: { component: HealthComponent }) {
   const maxPlayers = (d.max_players as number) || 0;
 
   const alerts = (d.performance_alerts as Record<string, PerformanceAlert>) || {};
+  const serverSoftware = (d.server_software as string) || 'Unknown';
+
+  const { data: highestPlayersRecord } = useQuery({
+    queryKey: ['record', 'highest_concurrent_players'],
+    queryFn: () => getServerRecord('highest_concurrent_players'),
+    refetchInterval: 30_000,
+  });
+
+  const highestPlayers = highestPlayersRecord?.record_value || 0;
 
   return (
     <Card>
@@ -119,6 +130,11 @@ export function ServerMetrics({ component }: { component: HealthComponent }) {
         <CardTitle className="text-sm font-medium">Performance</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <span className="text-xs text-muted-foreground">Server Software</span>
+          <span className="text-sm font-medium">{serverSoftware}</span>
+        </div>
+
         <TpsDisplay tps={tps} alert={alerts.tps} />
 
         <MetricRow label="MSPT" value={mspt} unit="ms" alert={alerts.mspt} />
@@ -140,9 +156,16 @@ export function ServerMetrics({ component }: { component: HealthComponent }) {
 
         <div className="flex items-center justify-between border-t border-border pt-3">
           <span className="text-xs text-muted-foreground">Players</span>
-          <span className="text-sm font-medium">
-            {onlinePlayers} / {maxPlayers}
-          </span>
+          <div className="text-right">
+            <span className="text-sm font-medium">
+              {onlinePlayers} / {maxPlayers}
+            </span>
+            {highestPlayers > 0 && (
+              <p className="text-[10px] text-muted-foreground">
+                Record: {highestPlayers}
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">

@@ -15,6 +15,8 @@ function formatUptime(ms: number): string {
 
 export function HealthOverview({ report }: { report: HealthReport }) {
   const serverInfo = report.server_info || {};
+  const serverComponent = report.components.find((c) => c.name === 'Server');
+  const serverSoftware = (serverComponent?.details?.server_software as string) || (serverInfo.server_name as string) || 'Unknown';
   const healthyCount = report.components.filter((c) => c.state === 'HEALTHY').length;
   const totalCount = report.components.length;
 
@@ -30,7 +32,7 @@ export function HealthOverview({ report }: { report: HealthReport }) {
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Server</p>
-            <p className="text-sm font-medium">{(serverInfo.server_name as string) || 'Unknown'}</p>
+            <p className="text-sm font-medium">{serverSoftware}</p>
           </div>
           <div className="space-y-1">
             <p className="text-xs text-muted-foreground">Plugin</p>

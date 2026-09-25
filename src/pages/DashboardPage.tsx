@@ -1,25 +1,30 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { getSession, checkSessionStatus, applyChanges, cancelSession, getServerHealth, getSessionStatus, SessionConflictError } from '@/lib/api';
+import { getSession, checkSessionStatus, applyChanges, cancelSession, getServerHealth, getSessionStatus, SessionConflictError, IncompatibleVersionError, getModerationSummary, getModeratorStats } from '@/lib/api';
 import { groupByCategory, getModuleDisplayName } from '@/lib/schema-utils';
 import { HealthOverview } from '@/components/health/HealthOverview';
 import { ServerMetrics } from '@/components/health/ServerMetrics';
 import { PluginHealthList } from '@/components/health/PluginHealthList';
-import { IntegrationHealthList } from '@/components/health/IntegrationHealthList';
 import { CoreTuffHealth } from '@/components/health/CoreTuffHealth';
 import { ExceptionsList } from '@/components/health/ExceptionsList';
 import { IncidentTimeline } from '@/components/health/IncidentTimeline';
 import { ActiveIncidentBanner } from '@/components/health/ActiveIncidentBanner';
 import { RecentIncidents } from '@/components/health/RecentIncidents';
 import { FullTimeline } from '@/components/health/FullTimeline';
+import { ModerationOverview } from '@/components/health/ModerationOverview';
+import { PunishmentTable } from '@/components/health/PunishmentTable';
+import { ModeratorStats } from '@/components/health/ModeratorStats';
+import { PunishmentDetailDialog } from '@/components/health/PunishmentDetailDialog';
+import { PlayerHistoryDialog } from '@/components/health/PlayerHistoryDialog';
 import { EditorSidebar } from '@/components/EditorSidebar';
+import { PlayersTab } from '@/components/players/PlayersTab';
 import { SettingCategory } from '@/components/SettingCategory';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from '@/components/ui/tooltip';
-import type { SettingDefinition, HealthReport } from '@/types';
+import type { SettingDefinition, HealthReport, Punishment } from '@/types';
 
 type ConnectionStatus = 'connecting' | 'connected' | 'disconnected' | 'expired';
 
@@ -71,7 +76,6 @@ function StaleMetric({ label, value, unit, stale }: { label: string; value: stri
 function OverviewTab({ report, connectionStatus, lastHealthUpdate }: { report: HealthReport; connectionStatus: ConnectionStatus; lastHealthUpdate: number | null }) {
   const serverComponent = report.components.find((c) => c.name === 'Server');
   const pluginComponent = report.components.find((c) => c.name === 'Plugins');
-  const integrationComponent = report.components.find((c) => c.name === 'Integrations');
   const coretuffComponent = report.components.find((c) => c.name === 'CoreTuff');
   const exceptionComponent = report.components.find((c) => c.name === 'Exceptions');
   const incidents = report.incidents || [];
@@ -100,10 +104,7 @@ function OverviewTab({ report, connectionStatus, lastHealthUpdate }: { report: H
 
       <RecentIncidents incidents={incidents} onViewTimeline={() => setShowTimeline(true)} />
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {pluginComponent && <PluginHealthList component={pluginComponent} />}
-        {integrationComponent && <IntegrationHealthList component={integrationComponent} />}
-      </div>
+      {pluginComponent && <PluginHealthList component={pluginComponent} />}
 
       {exceptionComponent && <ExceptionsList component={exceptionComponent} />}
 
@@ -114,6 +115,39 @@ function OverviewTab({ report, connectionStatus, lastHealthUpdate }: { report: H
           </CardContent>
         </Card>
       )}
+    </div>
+  );
+}
+
+function ModerationTab({
+  serverId,
+  summary,
+  summaryLoading,
+  modStats,
+  modStatsLoading,
+  onSelectPlayer,
+  onSelectPunishment,
+}: {
+  serverId: string;
+  summary: import('@/types').ModerationSummary | undefined;
+  summaryLoading: boolean;
+  modStats: import('@/types').ModeratorStat[] | undefined;
+  modStatsLoading: boolean;
+  onSelectPlayer: (uuid: string) => void;
+  onSelectPunishment: (p: Punishment) => void;
+}) {
+  return (
+    <div className="space-y-6">
+      <ModerationOverview summary={summary} isLoading={summaryLoading} />
+      <PunishmentTable
+        serverId={serverId}
+        onSelectPlayer={onSelectPlayer}
+        onSelectPunishment={onSelectPunishment}
+      />
+      <ModeratorStats stats={modStats} isLoading={modStatsLoading} />
+      <p className="text-xs text-muted-foreground">
+        Warning data is stored in memory and is reset when the server restarts.
+      </p>
     </div>
   );
 }
@@ -249,6 +283,25 @@ export function DashboardPage() {
     retry: 3,
   });
 
+  const { data: moderationSummary, isLoading: moderationLoading } = useQuery({
+    queryKey: ['moderationSummary', serverId],
+    queryFn: () => getModerationSummary(serverId!),
+    enabled: !!serverId && activeTab === 'moderation',
+    refetchInterval: 30_000,
+  });
+
+  const { data: moderatorStats, isLoading: moderatorStatsLoading } = useQuery({
+    queryKey: ['moderatorStats', serverId],
+    queryFn: () => getModeratorStats(serverId!),
+    enabled: !!serverId && activeTab === 'moderation',
+    refetchInterval: 30_000,
+  });
+
+  const [selectedPunishment, setSelectedPunishment] = useState<Punishment | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [historyUuid, setHistoryUuid] = useState<string | null>(null);
+  const [historyOpen, setHistoryOpen] = useState(false);
+
   useEffect(() => {
     if (sessionStatus) {
       if (!sessionStatus.valid) {
@@ -294,6 +347,8 @@ export function DashboardPage() {
     if (error) {
       if (error instanceof SessionConflictError) {
         navigate('/expired', { replace: true, state: { reason: 'conflict' } });
+      } else if (error instanceof IncompatibleVersionError) {
+        navigate('/expired', { replace: true, state: { reason: 'version' } });
       } else {
         navigate('/expired', { replace: true });
       }
@@ -419,6 +474,8 @@ export function DashboardPage() {
               <Tabs value={activeTab} onValueChange={setActiveTab}>
                 <TabsList>
                   <TabsTrigger value="overview">Overview</TabsTrigger>
+                  <TabsTrigger value="players">Players</TabsTrigger>
+                  <TabsTrigger value="moderation">Moderation</TabsTrigger>
                   <TabsTrigger value="configuration">Configuration</TabsTrigger>
                 </TabsList>
               </Tabs>
@@ -466,6 +523,37 @@ export function DashboardPage() {
                   )}
                 </div>
               )
+            ) : activeTab === 'players' ? (
+              serverId ? (
+                <PlayersTab
+                  serverId={serverId}
+                  onViewModeration={(uuid) => {
+                    setHistoryUuid(uuid);
+                    setHistoryOpen(true);
+                    setActiveTab('moderation');
+                  }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <p className="text-muted-foreground">Server not connected.</p>
+                </div>
+              )
+            ) : activeTab === 'moderation' ? (
+              serverId ? (
+                <ModerationTab
+                  serverId={serverId}
+                  summary={moderationSummary}
+                  summaryLoading={moderationLoading}
+                  modStats={moderatorStats?.moderators}
+                  modStatsLoading={moderatorStatsLoading}
+                  onSelectPlayer={(uuid) => { setHistoryUuid(uuid); setHistoryOpen(true); }}
+                  onSelectPunishment={(p) => { setSelectedPunishment(p); setDetailOpen(true); }}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 gap-3">
+                  <p className="text-muted-foreground">Server not connected.</p>
+                </div>
+              )
             ) : (
               <ConfigurationTab
                 session={session}
@@ -489,6 +577,23 @@ export function DashboardPage() {
           </div>
         </main>
       </div>
+
+      <PunishmentDetailDialog
+        punishment={selectedPunishment}
+        open={detailOpen}
+        onClose={() => { setDetailOpen(false); setSelectedPunishment(null); }}
+        onSelectPlayer={(uuid) => { setHistoryUuid(uuid); setHistoryOpen(true); }}
+      />
+
+      {serverId && (
+        <PlayerHistoryDialog
+          serverId={serverId}
+          playerUuid={historyUuid}
+          open={historyOpen}
+          onClose={() => { setHistoryOpen(false); setHistoryUuid(null); }}
+          onSelectPunishment={(p) => { setSelectedPunishment(p); setDetailOpen(true); }}
+        />
+      )}
     </TooltipProvider>
   );
 }

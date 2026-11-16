@@ -1,6 +1,6 @@
 import { useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { SUPPORTED_PLUGIN_VERSION, APP_VERSION } from '@/lib/version';
+import { SUPPORTED_PLUGIN_VERSIONS, APP_VERSION } from '@/lib/version';
 
 export function Expired() {
   const location = useLocation();
@@ -13,7 +13,7 @@ export function Expired() {
           <CardHeader className="text-center">
             <CardTitle className="text-2xl">Unsupported CoreTuff Version</CardTitle>
             <CardDescription>
-              This panel ({APP_VERSION}) only works with CoreTuff {SUPPORTED_PLUGIN_VERSION}
+              This panel ({APP_VERSION}) only works with CoreTuff {SUPPORTED_PLUGIN_VERSIONS}
             </CardDescription>
           </CardHeader>
           <CardContent className="text-center text-sm text-muted-foreground space-y-2">
@@ -22,7 +22,7 @@ export function Expired() {
               opened.
             </p>
             <p>
-              Update CoreTuff to <strong className="text-foreground">{SUPPORTED_PLUGIN_VERSION}</strong> and
+              Update CoreTuff to <strong className="text-foreground">{SUPPORTED_PLUGIN_VERSIONS}</strong> and
               start a new session with <code className="bg-muted px-1.5 py-0.5 rounded text-xs">/ct editor</code>.
             </p>
           </CardContent>

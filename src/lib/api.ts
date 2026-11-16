@@ -1,5 +1,5 @@
 import type { EditorSession, ApplyResult, HealthReport, ConnectedServer, ModerationSummary, PagedResult, Punishment, ModeratorStat, PlayerData, PlayerListResponse } from '@/types';
-import { SUPPORTED_PLUGIN_VERSION, isSupportedPluginVersion } from '@/lib/version';
+import { SUPPORTED_PLUGIN_VERSIONS, isSupportedPluginVersion } from '@/lib/version';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org/api');
 
@@ -14,7 +14,7 @@ export class IncompatibleVersionError extends Error {
   readonly pluginVersion: string;
   constructor(pluginVersion: string) {
     super(
-      `This panel only supports CoreTuff ${SUPPORTED_PLUGIN_VERSION}, but the session was created by CoreTuff ${pluginVersion}. Update CoreTuff to continue.`,
+      `This panel only supports CoreTuff ${SUPPORTED_PLUGIN_VERSIONS}, but the session was created by CoreTuff ${pluginVersion}. Update CoreTuff to continue.`,
     );
     this.name = 'IncompatibleVersionError';
     this.pluginVersion = pluginVersion;

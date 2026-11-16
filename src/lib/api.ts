@@ -1,7 +1,7 @@
 import type { EditorSession, ApplyResult, HealthReport, ConnectedServer, ModerationSummary, PagedResult, Punishment, ModeratorStat, PlayerData, PlayerListResponse } from '@/types';
 import { SUPPORTED_PLUGIN_VERSION, isSupportedPluginVersion } from '@/lib/version';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct-backend-b8cy.onrender.com/api');
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org/api');
 
 export class SessionConflictError extends Error {
   constructor() {

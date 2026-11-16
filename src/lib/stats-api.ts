@@ -13,7 +13,7 @@ export interface ServerRecord {
   recorded_at: number;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct-backend-b8cy.onrender.com/api');
+const API_BASE = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? '/api' : 'https://ct.api.voxelware.org/api');
 
 async function fetchJson<T>(url: string): Promise<T> {
   const res = await fetch(url);
